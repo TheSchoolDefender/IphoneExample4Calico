@@ -1,0 +1,409 @@
+<html><head><base href="https://websim-engine.ai/virtual-iphone/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Virtual iPhone with App Store</title><style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        overflow: hidden;
+    }
+    .iphone-container {
+        width: 375px;
+        height: 812px; /* Increased from 667px to 812px */
+        background: url('https://i.pinimg.com/736x/07/0f/39/070f3970315ae89fd12290c01dd6f071.jpg') center/cover no-repeat;
+        margin: 20px auto;
+        border-radius: 40px;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    .notch {
+        width: 210px;
+        height: 30px;
+        background: #000;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        z-index: 10;
+    }
+    .app-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(6, 1fr); /* Added to create more rows for apps */
+        gap: 15px;
+        padding: 50px 15px;
+        height: calc(100% - 150px); /* Adjust height to leave space for shortcut bar */
+        overflow-y: auto; /* Allow scrolling if there are many apps */
+    }
+    .app-icon {
+        width: 55px;
+        height: 55px;
+        background: rgba(255,255,255,0.8);
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+    .app-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .app-icon .app-name {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: white;
+        text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        width: 100%;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .app-window {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        opacity: 0;
+        transition: all 0.3s ease;
+        transform: translateY(100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 24px;
+        color: #333;
+        z-index: 20;
+    }
+    .app-window.open {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .app-content {
+        text-align: center;
+        padding: 20px;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+    }
+    .app-content iframe {
+        border: none;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+    .home-indicator {
+        width: 40%;
+        height: 5px;
+        background: #000;
+        border-radius: 2.5px;
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .shortcut-bar {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 80px;
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 10px;
+    }
+    .shortcut-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        overflow: hidden;
+    }
+    .shortcut-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .shortcut-icon:hover {
+        transform: scale(1.1);
+    }
+    .app-store-content {
+        background: #f0f0f0;
+        height: 100%;
+        overflow-y: auto;
+    }
+    .app-store-header {
+        background: #fff;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .app-list {
+        padding: 20px;
+    }
+    .app-item {
+        background: #fff;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    .app-item-icon {
+        width: 60px;
+        height: 60px;
+        background: #f0f0f0;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+        margin-right: 15px;
+    }
+    .app-item-info {
+        flex: 1;
+    }
+    .app-item-name {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .app-item-description {
+        font-size: 14px;
+        color: #666;
+    }
+    .app-item-button {
+        background: #007AFF;
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .loading-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 30;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .loading-screen.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .loading-icon {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style></head><body>
+<div class="iphone-container">
+    <div class="notch"></div>
+    <div class="app-grid">
+        <div class="app-icon" data-app="settings">
+            <img src="https://cdn-icons-png.flaticon.com/512/4724/4724531.png" alt="Settings icon, gear symbol in blue" width="55" height="55">
+            <div class="app-name">Settings</div>
+        </div>
+        <div class="app-icon" data-app="appstore">
+            <img src="https://i.pinimg.com/originals/49/c5/1d/49c51dd4a2ccd47d323d6e3f776c655e.jpg" alt="App Store icon, stylized A symbol in blue gradient" width="55" height="55">
+            <div class="app-name">App Store</div>
+        </div>
+    </div>
+    <div class="app-window">
+        <div class="app-content">
+            <p>App Content Here</p>
+        </div>
+    </div>
+    <div class="shortcut-bar">
+        <div class="shortcut-icon" data-app="settings">
+            <img src="https://cdn-icons-png.flaticon.com/512/4724/4724531.png" alt="Settings icon, gear symbol in blue" width="50" height="50">
+        </div>
+        <div class="shortcut-icon" data-app="appstore">
+            <img src="https://i.pinimg.com/originals/49/c5/1d/49c51dd4a2ccd47d323d6e3f776c655e.jpg" alt="App Store icon, stylized A symbol in blue gradient" width="50" height="50">
+        </div>
+        <div class="shortcut-icon" data-app="safari">
+            <img src="https://i.pinimg.com/originals/d7/0f/47/d70f47de743066f930c4ea4d1afd563a.jpg" alt="Safari icon, compass rose in blue and white" width="50" height="50">
+        </div>
+    </div>
+    <div class="home-indicator"></div>
+    <div class="loading-screen">
+        <div class="loading-icon"></div>
+    </div>
+</div>
+
+<script>
+    const appIcons = document.querySelectorAll('.app-icon, .shortcut-icon');
+    const appWindow = document.querySelector('.app-window');
+    const iPhoneContainer = document.querySelector('.iphone-container');
+    const loadingScreen = document.querySelector('.loading-screen');
+    const appGrid = document.querySelector('.app-grid');
+
+    const apps = [
+        { name: "Meow Tube", description: "Watch endless cat videos", icon: "🐱" },
+        { name: "Messages", description: "Stay connected with friends", icon: "🐱" },
+        { name: "Kitty Music", description: "Purr-fect tunes for every mood", icon: "🐱" },
+        { name: "Compass", description: "Never lose your way again", icon: "🐱" },
+        { name: "Calculator", description: "Crunch numbers with ease", icon: "🐱" },
+        { name: "Canvas", description: "Unleash your creativity", icon: "🐱" }
+    ];
+
+    const installedApps = new Set(["settings", "appstore"]);
+
+    appIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const appName = icon.getAttribute('data-app');
+            if (appName === 'appstore') {
+                openAppStore();
+            } else {
+                openGenericApp(appName);
+            }
+        });
+    });
+
+    function openAppStore() {
+        appWindow.querySelector('.app-content').innerHTML = `
+            <div class="app-store-content">
+                <div class="app-store-header">App Store</div>
+                <div class="app-list">
+                    ${apps.map(app => `
+                        <div class="app-item">
+                            <div class="app-item-icon">${app.icon}</div>
+                            <div class="app-item-info">
+                                <div class="app-item-name">${app.name}</div>
+                                <div class="app-item-description">${app.description}</div>
+                            </div>
+                            <button class="app-item-button" onclick="installApp('${app.name}')">${installedApps.has(app.name.toLowerCase()) ? 'Open' : 'Get'}</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        appWindow.classList.add('open');
+    }
+
+    function openGenericApp(appName) {
+        appWindow.querySelector('.app-content').innerHTML = `
+            <h2>${appName.charAt(0).toUpperCase() + appName.slice(1)} App</h2>
+            <iframe src="https://sites.google.com/view/kittyelectronics/products?authuser=0#h.ivud8ot6igf0" width="100%" height="90%" frameborder="0"></iframe>
+            <p>Swipe up to close.</p>
+        `;
+        appWindow.classList.add('open');
+    }
+
+    function installApp(appName) {
+        if (installedApps.has(appName.toLowerCase())) {
+            openGenericApp(appName.toLowerCase());
+        } else {
+            closeApp();
+            setTimeout(() => {
+                loadingScreen.classList.add('show');
+                setTimeout(() => {
+                    loadingScreen.classList.remove('show');
+                    installedApps.add(appName.toLowerCase());
+                    addAppToHomeScreen(appName);
+                    updateAppStoreButtons();
+                }, 2000);
+            }, 300);
+        }
+    }
+
+    function addAppToHomeScreen(appName) {
+        const newApp = document.createElement('div');
+        newApp.className = 'app-icon';
+        newApp.setAttribute('data-app', appName.toLowerCase());
+        newApp.innerHTML = `
+            <div>${apps.find(app => app.name === appName).icon}</div>
+            <div class="app-name">${appName}</div>
+        `;
+        newApp.addEventListener('click', () => openGenericApp(appName.toLowerCase()));
+        appGrid.appendChild(newApp);
+    }
+
+    function updateAppStoreButtons() {
+        const buttons = document.querySelectorAll('.app-item-button');
+        buttons.forEach(button => {
+            const appName = button.closest('.app-item').querySelector('.app-item-name').textContent;
+            button.textContent = installedApps.has(appName.toLowerCase()) ? 'Open' : 'Get';
+        });
+    }
+
+    let startY, moveY;
+    let isDragging = false;
+
+    appWindow.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+    });
+
+    appWindow.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        moveY = e.touches[0].clientY;
+        const diff = moveY - startY;
+        if (diff > 0) {
+            appWindow.style.transform = `translateY(${diff}px)`;
+            appWindow.style.opacity = 1 - diff / 200;
+        }
+    });
+
+    appWindow.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        const diff = moveY - startY;
+        if (diff > 100) {
+            closeApp();
+        } else {
+            appWindow.style.transform = '';
+            appWindow.style.opacity = '';
+        }
+        isDragging = false;
+    });
+
+    function closeApp() {
+        appWindow.style.transform = 'translateY(100%)';
+        appWindow.style.opacity = '0';
+        setTimeout(() => {
+            appWindow.classList.remove('open');
+            appWindow.style.transform = '';
+            appWindow.style.opacity = '';
+        }, 300);
+    }
+</script>
+</body></html>
